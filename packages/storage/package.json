@@ -6,7 +6,7 @@
   "exports": {
     ".": "./src/db/schema/index.ts",
     "./db/schema": "./src/db/schema/index.ts",
-    "./db/schema/*": "./src/db/schema/*.ts",
+    "./db/schema/*": "./src/db/schema/*",
     "./redis": "./src/redis/index.ts"
   },
   "scripts": {

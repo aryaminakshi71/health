@@ -16,6 +16,7 @@ import {
   date,
   index,
   pgEnum,
+  boolean,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { organizations } from '../auth.schema';
@@ -48,36 +49,36 @@ export const clinicalNotes = pgTable(
     appointmentId: uuid('appointment_id').references(() => appointments.id, {
       onDelete: 'set null',
     }),
-    
+
     // Note Details
     noteType: noteTypeEnum('note_type').notNull().default('progress'),
     noteNumber: varchar('note_number', { length: 50 }).notNull().unique(),
-    
+
     // SOAP Format
     subjective: text('subjective'), // Patient's description
     objective: text('objective'), // Clinical observations
     assessment: text('assessment'), // Diagnosis/assessment
     plan: text('plan'), // Treatment plan
-    
+
     // Full Note Text
     noteText: text('note_text'),
-    
+
     // Diagnoses
     primaryDiagnosis: varchar('primary_diagnosis', { length: 500 }),
     secondaryDiagnoses: jsonb('secondary_diagnoses').$type<string[]>().default([]),
     icd10Codes: jsonb('icd10_codes').$type<string[]>().default([]),
-    
+
     // Author
     authorId: uuid('author_id')
       .notNull()
       .references(() => users.id, { onDelete: 'restrict' }),
     coAuthorIds: jsonb('co_author_ids').$type<string[]>().default([]),
-    
+
     // Status
     isDraft: boolean('is_draft').default(false).notNull(),
     isSigned: boolean('is_signed').default(false).notNull(),
     signedAt: timestamp('signed_at', { withTimezone: true }),
-    
+
     // Timestamps
     visitDate: timestamp('visit_date', { withTimezone: true }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
@@ -114,7 +115,7 @@ export const vitalSigns = pgTable(
     clinicalNoteId: uuid('clinical_note_id').references(() => clinicalNotes.id, {
       onDelete: 'set null',
     }),
-    
+
     // Vital Signs Measurements
     temperature: numeric('temperature', { precision: 5, scale: 2 }), // Celsius
     temperatureUnit: varchar('temperature_unit', { length: 10 }).default('C'),
@@ -127,16 +128,16 @@ export const vitalSigns = pgTable(
     weight: numeric('weight', { precision: 5, scale: 2 }), // kg
     bmi: numeric('bmi', { precision: 5, scale: 2 }),
     painScore: integer('pain_score'), // 0-10 scale
-    
+
     // Additional Measurements
     glucose: numeric('glucose', { precision: 5, scale: 2 }),
     headCircumference: numeric('head_circumference', { precision: 5, scale: 2 }), // For pediatrics
-    
+
     // Recorded By
     recordedBy: uuid('recorded_by')
       .notNull()
       .references(() => users.id, { onDelete: 'restrict' }),
-    
+
     // Timestamp
     recordedAt: timestamp('recorded_at', { withTimezone: true })
       .notNull()
@@ -167,23 +168,23 @@ export const diagnoses = pgTable(
     clinicalNoteId: uuid('clinical_note_id').references(() => clinicalNotes.id, {
       onDelete: 'set null',
     }),
-    
+
     // Diagnosis Details
     diagnosis: varchar('diagnosis', { length: 500 }).notNull(),
     icd10Code: varchar('icd10_code', { length: 20 }),
     icd11Code: varchar('icd11_code', { length: 20 }),
     isPrimary: boolean('is_primary').default(false).notNull(),
     status: varchar('status', { length: 50 }).default('active'), // 'active', 'resolved', 'chronic'
-    
+
     // Dates
     onsetDate: date('onset_date'),
     resolvedDate: date('resolved_date'),
-    
+
     // Documented By
     documentedBy: uuid('documented_by')
       .notNull()
       .references(() => users.id, { onDelete: 'restrict' }),
-    
+
     // Timestamps
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
@@ -224,7 +225,7 @@ export const clinicalNotesRelations = relations(clinicalNotes, ({ one, many }) =
 export const vitalSignsRelations = relations(vitalSigns, ({ one }) => ({
   organization: one(organizations, {
     fields: [vitalSigns.organizationId],
-    references: [vitalSigns.organizationId],
+    references: [organizations.id],
   }),
   patient: one(patients, {
     fields: [vitalSigns.patientId],

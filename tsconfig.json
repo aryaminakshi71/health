@@ -15,6 +15,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "paths": {
+      "@/*": ["./apps/web/src/*"],
       "@healthcare-saas/core/*": ["./packages/core/src/*"],
       "@healthcare-saas/storage/*": ["./packages/storage/src/*"],
       "@healthcare-saas/api": ["./apps/api/src"]

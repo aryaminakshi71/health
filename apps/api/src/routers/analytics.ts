@@ -7,7 +7,7 @@
 import { z } from 'zod';
 import { eq, and, gte, lte, count, sum, desc } from 'drizzle-orm';
 import { complianceAudited, getDb, schema } from '../procedures';
-import { appointments, patients, charges, invoices } from '@healthcare-saas/storage/db/schema/healthcare';
+import { appointments, patients, charges, invoices } from '@healthcare-saas/storage/db/schema';
 
 // Validation schemas
 const analyticsFilterSchema = z.object({

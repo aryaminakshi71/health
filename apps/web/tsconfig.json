@@ -1,0 +1,29 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "@/*": [
+                "./src/*"
+            ],
+            "@healthcare-saas/core/*": [
+                "../../packages/core/src/*"
+            ],
+            "@healthcare-saas/storage/*": [
+                "../../packages/storage/src/*"
+            ]
+        },
+        "types": [
+            "vite/client"
+        ]
+    },
+    "include": [
+        "src/**/*",
+        "vite.config.ts",
+        "app.config.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "../../apps/api"
+    ]
+}

@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { eq, and, desc, count, gte, lte } from 'drizzle-orm';
 import { complianceAudited, getDb, schema } from '../procedures';
 import { ORPCError } from '@orpc/server';
-import { complianceAuditLogs, consentRecords, dataBreachIncidents } from '@healthcare-saas/storage/db/schema/healthcare';
+import { complianceAuditLogs, consentRecords, dataBreachIncidents } from '@healthcare-saas/storage/db/schema';
 
 // Validation schemas
 const createConsentSchema = z.object({

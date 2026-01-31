@@ -9,7 +9,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { orpc } from '../lib/api';
 import { DashboardMetrics } from '../components/analytics/dashboard-metrics';
-import { Button } from '@healthcare-saas/ui';
+import { Button } from '../components/ui/button';
 
 export const Route = createFileRoute('/healthcare-hub-dashboard')({
   component: HealthcareHubDashboard,

@@ -4,7 +4,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { testDb } from './setup';
-import { clinicalNotes, vitalSigns, diagnoses } from '@healthcare-saas/storage/db/schema/healthcare';
+import { clinicalNotes, vitalSigns, diagnoses } from '@healthcare-saas/storage/db/schema';
 
 describe('EHR Router', () => {
   beforeEach(async () => {

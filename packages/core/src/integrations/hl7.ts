@@ -161,9 +161,9 @@ export function parseHL7ORU(message: string): {
   abnormalFlag: string;
   resultDate: Date;
 } {
-  const segments = message.split('\r');
+  const segments = message.split(/[\r\n]+/);
   const fieldSeparator = '|';
-  
+
   let patientId = '';
   let orderNumber = '';
   let testCode = '';

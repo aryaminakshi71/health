@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { eq, and, desc, count, ilike, or } from 'drizzle-orm';
 import { complianceAudited, getDb, schema } from '../procedures';
 import { ORPCError } from '@orpc/server';
-import { clinicalNotes, vitalSigns, diagnoses } from '@healthcare-saas/storage/db/schema/healthcare';
+import { clinicalNotes, vitalSigns, diagnoses } from '@healthcare-saas/storage/db/schema';
 
 // Validation schemas
 const createClinicalNoteSchema = z.object({

@@ -34,7 +34,7 @@ function Dashboard() {
       )}
 
       {/* Additional dashboard sections */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Recent Appointments */}
         <div className="bg-white shadow rounded-lg p-6">
           <h3 className="text-lg font-medium mb-4">Recent Appointments</h3>
@@ -44,15 +44,21 @@ function Dashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium mb-4">Quick Actions</h3>
-          <div className="space-y-2">
-            <a
-              href="/patients"
-              className="block px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100"
-            >
-              Add New Patient
-            </a>
+          <div className="bg-white shadow rounded-lg p-6">
+            <h3 className="text-lg font-medium mb-4">Quick Actions</h3>
+            <div className="space-y-2">
+              <a
+                href="/modules"
+                className="block px-4 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100"
+              >
+                View Modules
+              </a>
+              <a
+                href="/patients"
+                className="block px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100"
+              >
+                Add New Patient
+              </a>
             <a
               href="/appointments"
               className="block px-4 py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100"

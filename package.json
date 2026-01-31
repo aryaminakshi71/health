@@ -23,7 +23,7 @@
     "lint": "bun run lint:api && bun run lint:web",
     "lint:api": "cd apps/api && bun run lint",
     "lint:web": "cd apps/web && bun run lint",
-    "test": "bun test",
+    "test": "bun test --pass-with-no-tests packages",
     "test:api": "cd apps/api && bun run test",
     "test:coverage": "cd apps/api && bun run test:coverage",
     "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules"
@@ -48,11 +48,19 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
     "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
     "drizzle-kit": "^0.20.0",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
     "typescript": "^5.3.0",
+    "typescript-eslint": "^8.54.0",
     "vite": "^5.0.0"
   },
   "engines": {

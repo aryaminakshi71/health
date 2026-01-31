@@ -30,7 +30,7 @@ describe('HL7 Integration', () => {
     const oruMessage = `MSH|^~\\&|LAB|SYSTEM|HEALTHCARE|FACILITY|20240101120000||ORU^R01|12345|P|2.5
 PID|1||patient-123||Doe^John||19900101|M
 OBR|1|LAB-001-000001||CBC^Complete Blood Count|20240101120000
-OBX|1|NM|WBC^White Blood Count|5.5|10*3/uL|4.0-11.0|N`;
+OBX|1|NM|WBC^White Blood Count||5.5|10*3/uL|4.0-11.0|N`;
 
     const result = parseHL7ORU(oruMessage);
     expect(result.patientId).toBe('patient-123');

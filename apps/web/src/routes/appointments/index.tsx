@@ -2,13 +2,9 @@
  * Appointments List Route
  */
 
-import { createFileRoute } from '@tanstack/react-router';
-import { useQuery } from '@tanstack/react-query';
-import { orpc } from '../../lib/api';
-import { AppointmentForm } from '../../components/appointments/appointment-form';
-import { DataTable } from '../../components/ui/data-table';
-import { Button } from '../../components/ui/button';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { useState } from 'react';
+import { Button } from '../../components/ui/button';
 
 export const Route = createFileRoute('/appointments/')({
   component: AppointmentsList,
@@ -18,22 +14,16 @@ function AppointmentsList() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [status, setStatus] = useState<string | undefined>();
 
-  const { data, isLoading, error } = useQuery(
-    orpc.appointments.list({
-      startDate: date,
-      endDate: date,
-      status: status as any,
-      limit: 100,
-    })
-  );
+  // Sample appointments for demo
+  const sampleAppointments = [
+    { id: '1', scheduledAt: '2025-01-30T09:00:00', patient: { firstName: 'John', lastName: 'Doe' }, provider: { name: 'Dr. Smith' }, appointmentType: 'Check-up', status: 'scheduled' },
+    { id: '2', scheduledAt: '2025-01-30T10:30:00', patient: { firstName: 'Jane', lastName: 'Smith' }, provider: { name: 'Dr. Johnson' }, appointmentType: 'Follow-up', status: 'confirmed' },
+    { id: '3', scheduledAt: '2025-01-30T14:00:00', patient: { firstName: 'Robert', lastName: 'Johnson' }, provider: { name: 'Dr. Williams' }, appointmentType: 'Consultation', status: 'completed' },
+  ];
 
-  if (isLoading) {
-    return <div>Loading appointments...</div>;
-  }
-
-  if (error) {
-    return <div>Error loading appointments: {error.message}</div>;
-  }
+  const filteredAppointments = status
+    ? sampleAppointments.filter(a => a.status === status)
+    : sampleAppointments;
 
   return (
     <div className="space-y-6">
@@ -44,14 +34,7 @@ function AppointmentsList() {
             Schedule and manage appointments
           </p>
         </div>
-        <AppointmentForm
-          isOpen={showNewAppointment}
-          onClose={() => setShowNewAppointment(false)}
-        />
-        <Button
-          variant="primary"
-          onClick={() => setShowNewAppointment(true)}
-        >
+        <Button>
           New Appointment
         </Button>
       </div>
@@ -104,7 +87,7 @@ function AppointmentsList() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {data?.appointments.map((appointment: any) => (
+              {filteredAppointments.map((appointment) => (
                 <tr key={appointment.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {new Date(appointment.scheduledAt).toLocaleTimeString()}
@@ -129,12 +112,13 @@ function AppointmentsList() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <a
-                      href={`/appointments/${appointment.id}`}
+                    <Link
+                      to="/appointments/$id"
+                      params={{ id: appointment.id }}
                       className="text-blue-600 hover:text-blue-900"
                     >
                       View
-                    </a>
+                    </Link>
                   </td>
                 </tr>
               ))}

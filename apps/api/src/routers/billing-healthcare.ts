@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { eq, and, desc, count, ilike, or, gte, lte } from 'drizzle-orm';
 import { complianceAudited, getDb, schema } from '../procedures';
 import { ORPCError } from '@orpc/server';
-import { charges, invoices, payments, invoiceCharges } from '@healthcare-saas/storage/db/schema/healthcare';
+import { charges, invoices, payments, invoiceCharges } from '@healthcare-saas/storage/db/schema';
 
 // Validation schemas
 const createChargeSchema = z.object({

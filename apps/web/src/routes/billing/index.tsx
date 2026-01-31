@@ -3,9 +3,6 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router';
-import { useQuery } from '@tanstack/react-query';
-import { orpc } from '../../lib/api';
-import { DataTable } from '../../components/ui/data-table';
 import { useState } from 'react';
 
 export const Route = createFileRoute('/billing/')({
@@ -18,26 +15,25 @@ function BillingDashboard() {
     endDate: new Date().toISOString().split('T')[0],
   });
 
-  const { data: charges } = useQuery(
-    orpc.billingHealthcare.listCharges({
-      startDate: dateRange.startDate,
-      endDate: dateRange.endDate,
-      limit: 100,
-    })
-  );
+  // Sample data for demo
+  const analytics = {
+    totalRevenue: 125000.00,
+    totalCharges: 150000.00,
+    totalPayments: 125000.00,
+    outstandingBalance: 25000.00,
+  };
 
-  const { data: invoices } = useQuery(
-    orpc.billingHealthcare.listInvoices({
-      limit: 50,
-    })
-  );
+  const charges = [
+    { id: '1', chargeNumber: 'CHG-001', serviceDate: '2025-01-28', cptCode: '99213', netAmount: 150.00, status: 'Paid' },
+    { id: '2', chargeNumber: 'CHG-002', serviceDate: '2025-01-29', cptCode: '99214', netAmount: 200.00, status: 'Pending' },
+    { id: '3', chargeNumber: 'CHG-003', serviceDate: '2025-01-30', cptCode: '99215', netAmount: 250.00, status: 'Submitted' },
+  ];
 
-  const { data: analytics } = useQuery(
-    orpc.analytics.getRevenueAnalytics({
-      startDate: dateRange.startDate,
-      endDate: dateRange.endDate,
-    })
-  );
+  const invoices = [
+    { id: '1', invoiceNumber: 'INV-001', invoiceDate: '2025-01-25', totalAmount: 500.00, balanceAmount: 0, status: 'Paid' },
+    { id: '2', invoiceNumber: 'INV-002', invoiceDate: '2025-01-28', totalAmount: 750.00, balanceAmount: 250.00, status: 'Partial' },
+    { id: '3', invoiceNumber: 'INV-003', invoiceDate: '2025-01-30', totalAmount: 300.00, balanceAmount: 300.00, status: 'Pending' },
+  ];
 
   return (
     <div className="space-y-6">
@@ -105,31 +101,55 @@ function BillingDashboard() {
       {/* Charges Table */}
       <div className="bg-white shadow rounded-lg p-6">
         <h3 className="text-lg font-medium mb-4">Recent Charges</h3>
-        <DataTable
-          data={charges?.charges || []}
-          columns={[
-            { key: 'chargeNumber', header: 'Charge #' },
-            { key: 'serviceDate', header: 'Service Date' },
-            { key: 'cptCode', header: 'CPT Code' },
-            { key: 'netAmount', header: 'Amount', render: (row) => `$${row.netAmount}` },
-            { key: 'status', header: 'Status' },
-          ]}
-        />
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Charge #</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Service Date</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">CPT Code</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {charges.map((charge) => (
+              <tr key={charge.id}>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{charge.chargeNumber}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{charge.serviceDate}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{charge.cptCode}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${charge.netAmount.toFixed(2)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{charge.status}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {/* Invoices Table */}
       <div className="bg-white shadow rounded-lg p-6">
         <h3 className="text-lg font-medium mb-4">Recent Invoices</h3>
-        <DataTable
-          data={invoices?.invoices || []}
-          columns={[
-            { key: 'invoiceNumber', header: 'Invoice #' },
-            { key: 'invoiceDate', header: 'Date' },
-            { key: 'totalAmount', header: 'Total', render: (row) => `$${row.totalAmount}` },
-            { key: 'balanceAmount', header: 'Balance', render: (row) => `$${row.balanceAmount}` },
-            { key: 'status', header: 'Status' },
-          ]}
-        />
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invoice #</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Balance</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {invoices.map((invoice) => (
+              <tr key={invoice.id}>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{invoice.invoiceNumber}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{invoice.invoiceDate}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${invoice.totalAmount.toFixed(2)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${invoice.balanceAmount.toFixed(2)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{invoice.status}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

@@ -2,13 +2,17 @@
  * RxNorm Integration Tests
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { getRxNormByNDC, getRxNormInteractions } from '@healthcare-saas/core/integrations/rxnorm';
 
 // Mock fetch for testing
 global.fetch = vi.fn();
 
 describe('RxNorm Integration', () => {
+  beforeAll(() => {
+    process.env.RXNORM_API_KEY = 'test-key';
+  });
+
   it('should get RxNorm concept by NDC', async () => {
     (fetch as any).mockResolvedValueOnce({
       ok: true,

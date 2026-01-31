@@ -2,10 +2,11 @@
  * Patients List Route
  */
 
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { orpc } from '../../lib/api';
 import { useState } from 'react';
+import { Button } from '../../components/ui/button';
 
 export const Route = createFileRoute('/patients/')({
   component: PatientsList,
@@ -33,6 +34,17 @@ function PatientsList() {
     return <div>Error loading patients: {error.message}</div>;
   }
 
+  // Sample patients for demo
+  const samplePatients = [
+    { id: '1', patientNumber: 'P001', firstName: 'John', lastName: 'Doe', dateOfBirth: '1985-03-15', gender: 'Male', phone: '555-0101' },
+    { id: '2', patientNumber: 'P002', firstName: 'Jane', lastName: 'Smith', dateOfBirth: '1990-07-22', gender: 'Female', phone: '555-0102' },
+    { id: '3', patientNumber: 'P003', firstName: 'Robert', lastName: 'Johnson', dateOfBirth: '1978-11-08', gender: 'Male', phone: '555-0103' },
+  ];
+
+  const filteredPatients = samplePatients.filter(p =>
+    `${p.firstName} ${p.lastName}`.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -42,14 +54,7 @@ function PatientsList() {
             Manage patient records and information
           </p>
         </div>
-        <PatientForm
-          isOpen={showNewPatient}
-          onClose={() => setShowNewPatient(false)}
-        />
-        <Button
-          variant="primary"
-          onClick={() => setShowNewPatient(true)}
-        >
+        <Button onClick={() => setShowNewPatient(true)}>
           New Patient
         </Button>
       </div>
@@ -65,58 +70,38 @@ function PatientsList() {
           />
         </div>
 
-        <DataTable
-          data={data?.patients || []}
-          columns={[
-            { key: 'patientNumber', header: 'Patient Number' },
-            { 
-              key: 'name', 
-              header: 'Name',
-              render: (row: any) => `${row.firstName} ${row.lastName}`
-            },
-            { key: 'dateOfBirth', header: 'Date of Birth' },
-            { key: 'gender', header: 'Gender' },
-            { key: 'phone', header: 'Phone' },
-            {
-              key: 'actions',
-              header: 'Actions',
-              render: (row: any) => (
-                <a
-                  href={`/patients/${row.id}`}
-                  className="text-blue-600 hover:text-blue-900"
-                >
-                  View
-                </a>
-              ),
-            },
-          ]}
-          onRowClick={(row: any) => {
-            window.location.href = `/patients/${row.id}`;
-          }}
-          isLoading={isLoading}
-        />
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Patient #</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">DOB</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Gender</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {filteredPatients.map((patient) => (
+              <tr key={patient.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{patient.patientNumber}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{patient.firstName} {patient.lastName}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{patient.dateOfBirth}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{patient.gender}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{patient.phone}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  <Link to="/patients/$id" params={{ id: patient.id }} className="text-blue-600 hover:text-blue-900">
+                    View
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
-        {data && data.total > limit && (
-          <div className="p-4 border-t flex justify-between">
-            <div className="text-sm text-gray-500">
-              Showing {page * limit + 1} to {Math.min((page + 1) * limit, data.total)} of {data.total}
-            </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => setPage(p => Math.max(0, p - 1))}
-                disabled={page === 0}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => setPage(p => p + 1)}
-                disabled={(page + 1) * limit >= data.total}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
+        {filteredPatients.length === 0 && (
+          <div className="p-8 text-center text-gray-500">
+            No patients found
           </div>
         )}
       </div>

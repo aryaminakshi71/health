@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { eq, and, gte, lte, desc, count, or, ilike } from 'drizzle-orm';
 import { complianceAudited, getDb, schema } from '../procedures';
 import { ORPCError } from '@orpc/server';
-import { appointments, appointmentReminders } from '@healthcare-saas/storage/db/schema/healthcare';
+import { appointments, appointmentReminders } from '@healthcare-saas/storage/db/schema';
 import { getOrCache, invalidateCache } from '@healthcare-saas/storage/redis';
 
 // Validation schemas

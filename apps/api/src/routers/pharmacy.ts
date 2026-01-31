@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { eq, and, desc, count, ilike, or, lte } from 'drizzle-orm';
 import { complianceAudited, getDb, schema } from '../procedures';
 import { ORPCError } from '@orpc/server';
-import { pharmacyInventory, pharmacyDispensations, medicationCatalog } from '@healthcare-saas/storage/db/schema/healthcare';
+import { pharmacyInventory, pharmacyDispensations, medicationCatalog } from '@healthcare-saas/storage/db/schema';
 
 // Validation schemas
 const dispensePrescriptionSchema = z.object({
@@ -241,7 +241,7 @@ export const pharmacyRouter = {
       const db = getDb(context);
 
       // Find or create inventory item
-      let inventory = await db.query.pharmacyInventory.findFirst({
+      const inventory = await db.query.pharmacyInventory.findFirst({
         where: (inventory, { eq, and }) =>
           and(
             eq(inventory.organizationId, context.organization.id),

@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { complianceAudited, getDb, schema } from '../procedures';
 import { ORPCError } from '@orpc/server';
 import { createTwilioRoom, createZoomRoom } from '@healthcare-saas/core/integrations/telemedicine';
-import { appointments } from '@healthcare-saas/storage/db/schema/healthcare';
+import { appointments } from '@healthcare-saas/storage/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 // Validation schemas

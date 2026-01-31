@@ -4,7 +4,7 @@
  */
 
 /// <reference types="@cloudflare/workers-types" />
-import { env as cfEnv } from "cloudflare:workers";
+// import { env as cfEnv } from "cloudflare:workers";
 import { z } from "zod";
 import { clientSchema } from "./client.js";
 
@@ -67,4 +67,4 @@ const serverSchema = clientSchema.extend({
 
 export type ServerEnv = z.infer<typeof serverSchema>;
 
-export const env: ServerEnv = serverSchema.parse(cfEnv);
+export const env: ServerEnv = serverSchema.parse(process.env);
