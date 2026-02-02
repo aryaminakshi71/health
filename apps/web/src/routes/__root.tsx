@@ -15,6 +15,8 @@ import { PostHogProvider } from '../components/providers/posthog-provider';
 import { queryClient } from '../lib/api';
 import { ErrorPage, NotFoundPage } from '../components/error';
 import { generateOrganizationSchema, generateWebSiteSchema, getHealthOrganizationSchema } from '../lib/structured-data';
+import { registerServiceWorker } from '../lib/service-worker';
+import { useEffect } from 'react';
 
 import stylesCss from '../styles.css?url';
 
@@ -44,6 +46,10 @@ export const Route = createRootRoute({
 });
 
 function RootDocument() {
+  useEffect(() => {
+    registerServiceWorker();
+  }, []);
+
   const isWellness = useRouterState({
     select: (state) => state.location.pathname.startsWith('/wellness'),
   });

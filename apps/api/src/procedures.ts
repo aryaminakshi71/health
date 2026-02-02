@@ -10,14 +10,14 @@
 
 import { os } from '@orpc/server';
 import { ORPCError } from '@orpc/server';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
 import * as schema from '@healthcare-saas/storage/db/schema';
-import { auth } from '@healthcare-saas/core/auth/better-auth';
+import { createAuthFromEnv } from './lib/create-auth-from-env';
+import { createDb } from './lib/create-db';
 
 // Context types
 type PublicContext = {
-  request: Request;
+  headers: Headers;
+  request?: Request;
 };
 
 type AuthedContext = PublicContext & {
@@ -45,22 +45,18 @@ type OrgAuthedContext = AuthedContext & {
 };
 
 // Database connection helper with connection pooling
-export function getDb(context: AuthedContext | OrgAuthedContext) {
-  const connectionString = process.env.DATABASE_URL;
+// Supports Hyperdrive (Cloudflare Workers) or direct PostgreSQL connection
+export function getDb(context: AuthedContext | OrgAuthedContext | PublicContext) {
+  // Check for Hyperdrive connection string from Cloudflare env
+  // In Cloudflare Workers, env.DATABASE.connectionString is provided by Hyperdrive
+  const connectionString = 
+    (context as any).env?.DATABASE?.connectionString ||
+    process.env.DATABASE_URL;
   if (!connectionString) {
     throw new Error('DATABASE_URL is not set');
   }
   
-  // Connection pooling configuration
-  // Max 20 connections per app instance
-  const client = postgres(connectionString, {
-    max: 20,                    // Max connections
-    idle_timeout: 20,           // 20 seconds
-    connect_timeout: 10,        // 10 seconds
-    ssl: "require",            // Required for Neon/Cloud providers
-  });
-  
-  return drizzle(client, { schema });
+  return createDb({ connectionString });
 }
 
 // Export schema for use in routers
@@ -78,8 +74,8 @@ export const pub = os.$context<PublicContext>();
  */
 export const authed = pub.use(async (ctx, next) => {
   // Better Auth integration - verify session from cookie or Authorization header
-  const authHeader = ctx.request.headers.get('authorization');
-  const cookieHeader = ctx.request.headers.get('cookie');
+  const authHeader = ctx.headers.get('authorization');
+  const cookieHeader = ctx.headers.get('cookie');
   
   let sessionToken: string | null = null;
   
@@ -89,7 +85,7 @@ export const authed = pub.use(async (ctx, next) => {
   } 
   // Fall back to cookie
   else if (cookieHeader) {
-    const cookies = cookieHeader.split('; ').reduce((acc, cookie) => {
+    const cookies = cookieHeader.split('; ').reduce((acc: Record<string, string>, cookie: string) => {
       const [key, value] = cookie.split('=');
       acc[key] = value;
       return acc;
@@ -100,7 +96,7 @@ export const authed = pub.use(async (ctx, next) => {
   
   if (!sessionToken) {
     throw new ORPCError({
-      code: 'UNAUTHORIZED',
+      code: 'UNAUTHORIZED' as any,
       message: 'Authentication required',
     });
   }
@@ -110,7 +106,7 @@ export const authed = pub.use(async (ctx, next) => {
   
   if (!user) {
     throw new ORPCError({
-      code: 'UNAUTHORIZED',
+      code: 'UNAUTHORIZED' as any,
       message: 'Invalid authentication token',
     });
   }
@@ -118,7 +114,7 @@ export const authed = pub.use(async (ctx, next) => {
   return next({
     ...ctx,
     user,
-  });
+  } as any);
 });
 
 /**
@@ -140,8 +136,7 @@ export const orgAuthed = authed.use(async (ctx, next) => {
   });
 
   if (!org) {
-    throw new ORPCError({
-      code: 'FORBIDDEN',
+    throw new ORPCError('FORBIDDEN' as any, {
       message: 'Organization not found',
     });
   }
@@ -157,7 +152,7 @@ export const orgAuthed = authed.use(async (ctx, next) => {
       region: org.region as 'india' | 'usa' | 'europe' | 'dubai',
       complianceSettings,
     },
-  });
+  } as any);
 });
 
 /**
@@ -166,7 +161,7 @@ export const orgAuthed = authed.use(async (ctx, next) => {
  */
 export const complianceAudited = orgAuthed.use(async (ctx, next) => {
   const startTime = Date.now();
-  const result = await next();
+  const result = await next(ctx as any);
   const duration = Date.now() - startTime;
 
   // Log to audit trail based on region
@@ -174,11 +169,11 @@ export const complianceAudited = orgAuthed.use(async (ctx, next) => {
     userId: ctx.user.id,
     organizationId: ctx.organization.id,
     region: ctx.organization.region,
-    action: ctx.route?.path || 'unknown',
-    method: ctx.route?.method || 'unknown',
+    action: 'unknown', // oRPC doesn't expose route in context
+    method: 'unknown',
     timestamp: new Date(),
     duration,
-    ipAddress: ctx.request.headers.get('x-forwarded-for') || 'unknown',
+    ipAddress: ctx.headers.get('x-forwarded-for') || 'unknown',
   });
 
   return result;
@@ -189,15 +184,27 @@ export const complianceAudited = orgAuthed.use(async (ctx, next) => {
 async function verifyAuthToken(token: string): Promise<AuthedContext['user'] | null> {
   try {
     // Create a request-like object for Better Auth
-    const request = new Request('http://localhost', {
-      headers: {
-        'cookie': `better-auth.session_token=${token}`,
-      },
+    const headers = new Headers({
+      'cookie': `better-auth.session_token=${token}`,
+    });
+
+    // Get database connection
+    const connectionString = process.env.DATABASE_URL;
+    if (!connectionString) {
+      return null;
+    }
+    const db = createDb({ connectionString });
+    
+    // Create auth instance
+    const auth = createAuthFromEnv(db, {
+      DATABASE_URL: connectionString,
+      BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
+      VITE_PUBLIC_SITE_URL: process.env.VITE_PUBLIC_SITE_URL,
     });
 
     // Verify session with Better Auth
     const session = await auth.api.getSession({
-      headers: request.headers,
+      headers,
     });
 
     if (!session?.user) {
@@ -252,7 +259,7 @@ async function logComplianceAudit(data: {
   ipAddress: string;
 }) {
   try {
-    const db = getDb({ request: new Request('http://localhost') } as PublicContext);
+    const db = getDb({ headers: new Headers() } as PublicContext);
     
     // Determine if PHI was accessed based on action
     const phiAccessed = data.action.includes('patient') || 

@@ -31,5 +31,8 @@
             "binding": "CACHE",
             "id": "placeholder-kv-id"
         }
-    ]
+    ],
+    "dev": {
+        "port": 3003
+    }
 }

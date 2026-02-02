@@ -5,6 +5,7 @@
  * Falls back to in-memory if Redis not configured.
  */
 
+import type { Context, Next } from "hono";
 import { Ratelimit } from "@upstash/ratelimit";
 import { redis } from "@healthcare-saas/storage/redis";
 import { ORPCError } from "@orpc/server";
@@ -54,11 +55,34 @@ export async function checkRateLimit(options: RateLimitOptions): Promise<void> {
     
     if (!result.success) {
       const retryAfter = Math.ceil((result.reset - Date.now()) / 1000);
-      throw new ORPCError({
-        code: "TOO_MANY_REQUESTS",
+      throw new ORPCError("TOO_MANY_REQUESTS" as any, {
         message: `Rate limit exceeded. Please try again in ${retryAfter} seconds.`,
         metadata: { retryAfter },
       });
     }
   }
+}
+
+/**
+ * Hono middleware for rate limiting
+ */
+export function rateLimitRedis(options: Partial<RateLimitOptions & { keyGenerator?: (c: Context) => string }> = {}) {
+  return async (c: Context, next: Next) => {
+    const keyGenerator = options.keyGenerator || ((c: Context) => {
+      const ip = c.req.header("x-forwarded-for") || c.req.header("x-real-ip") || "unknown";
+      return `ip:${ip}`;
+    });
+    
+    const identifier = keyGenerator(c);
+    const limiterType = options.limiterType || "api";
+    
+    await checkRateLimit({
+      limiterType,
+      identifier,
+      windowSeconds: options.windowSeconds || 60,
+      maxRequests: options.maxRequests || 100,
+    });
+    
+    await next();
+  };
 }

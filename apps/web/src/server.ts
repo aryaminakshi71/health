@@ -1,4 +1,5 @@
 import handler from "@tanstack/react-start/server-entry";
+import { api } from "@healthcare-saas/api/app";
 import type { getRouter } from "./router";
 
 export interface CloudflareRequestContext {
@@ -24,6 +25,13 @@ export default {
     env: Env,
     ctx: ExecutionContext
   ): Promise<Response> {
+    const url = new URL(request.url);
+
+    // Handle API routes - integrated API
+    if (url.pathname.startsWith("/api")) {
+      return api.fetch(request, env as any, ctx);
+    }
+
     return handler.fetch(request, {
       context: {
         cloudflare: { env, ctx },

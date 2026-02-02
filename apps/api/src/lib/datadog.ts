@@ -60,7 +60,8 @@ export function createSpan<T>(
  */
 export function addTags(tags: Record<string, string | number | boolean>): void {
   if (!isConfigured) return;
-  tracer.use("http").addTags(tags);
+  // Tags are added via span.setTag() in trace callbacks
+  // This is a no-op for compatibility
 }
 
 /**
@@ -68,7 +69,8 @@ export function addTags(tags: Record<string, string | number | boolean>): void {
  */
 export function setError(error: Error): void {
   if (!isConfigured) return;
-  tracer.use("http").setError(error);
+  // Errors are set via span.setError() in trace callbacks
+  // This is a no-op for compatibility
 }
 
 export { tracer };

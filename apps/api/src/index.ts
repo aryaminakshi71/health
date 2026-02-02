@@ -5,7 +5,7 @@
  */
 
 import { RPCHandler } from '@orpc/server/fetch';
-import { os } from '@orpc/server';
+import { onError } from '@orpc/server';
 import { initSentry } from './lib/sentry';
 import { initDatadog } from './lib/datadog';
 import { appRouter } from './routers';
@@ -14,7 +14,13 @@ import { appRouter } from './routers';
 initSentry();
 initDatadog();
 
-const handler = new RPCHandler(os.router(appRouter));
+const handler = new RPCHandler(appRouter, {
+  interceptors: [
+    onError((error: unknown) => {
+      console.error("[RPC Error]", error);
+    }),
+  ],
+});
 
 const port = Number(process.env.PORT) || 3001;
 const host = process.env.HOST || '0.0.0.0';
