@@ -2,18 +2,29 @@
  * TanStack Router Configuration
  */
 
-import { createRouter } from '@tanstack/react-router';
+import type { QueryClient } from '@tanstack/react-query';
+import { createRouter as createTanStackRouter } from '@tanstack/react-router';
 import { routeTree } from './routeTree.gen';
+import { queryClient } from './lib/api';
 
-// Create the router instance
-export const router = createRouter({
-  routeTree,
-  defaultPreload: 'intent',
-});
+export function createRouter(queryClient: QueryClient) {
+  return createTanStackRouter({
+    routeTree,
+    defaultPreload: 'intent',
+    context: {
+      queryClient,
+    },
+  });
+}
+
+// TanStack Start expects getRouter export
+export function getRouter() {
+  return createRouter(queryClient);
+}
 
 // Register router for type safety
 declare module '@tanstack/react-router' {
   interface Register {
-    router: typeof router;
+    router: ReturnType<typeof createRouter>;
   }
 }

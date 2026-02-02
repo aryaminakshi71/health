@@ -1,0 +1,35 @@
+{
+    "$schema": "../../node_modules/wrangler/config-schema.json",
+    "name": "health-web",
+    "main": "./src/server.ts",
+    "compatibility_date": "2025-01-10",
+    "compatibility_flags": [
+        "nodejs_compat",
+        "nodejs_compat_populate_process_env"
+    ],
+    "assets": {
+        "binding": "ASSETS"
+    },
+    "vars": {
+        "NODE_ENV": "development"
+    },
+    "hyperdrive": [
+        {
+            "binding": "DATABASE",
+            "id": "placeholder-create-hyperdrive-first",
+            "localConnectionString": "postgresql://healthcare:healthcare_password@localhost:5432/healthcare_db"
+        }
+    ],
+    "r2_buckets": [
+        {
+            "binding": "BUCKET",
+            "bucket_name": "health-assets"
+        }
+    ],
+    "kv_namespaces": [
+        {
+            "binding": "CACHE",
+            "id": "placeholder-kv-id"
+        }
+    ]
+}
