@@ -5,18 +5,24 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { testDb } from './setup';
+import { testDb, hasDatabase } from './setup';
 
 describe('Healthcare System Integration', () => {
   beforeAll(async () => {
+    if (!hasDatabase || !testDb) {
+      return;
+    }
     // Setup test data
   });
 
   afterAll(async () => {
+    if (!hasDatabase || !testDb) {
+      return;
+    }
     // Cleanup test data
   });
 
-  it('should create patient and appointment workflow', async () => {
+  it.skipIf(!hasDatabase || !testDb)('should create patient and appointment workflow', async () => {
     // Test complete workflow:
     // 1. Create patient
     // 2. Create appointment
@@ -30,7 +36,7 @@ describe('Healthcare System Integration', () => {
     expect(true).toBe(true);
   });
 
-  it('should handle lab order and result workflow', async () => {
+  it.skipIf(!hasDatabase || !testDb)('should handle lab order and result workflow', async () => {
     // Test workflow:
     // 1. Create lab order
     // 2. Receive lab result (HL7)
@@ -40,7 +46,7 @@ describe('Healthcare System Integration', () => {
     expect(true).toBe(true);
   });
 
-  it('should handle prescription and pharmacy workflow', async () => {
+  it.skipIf(!hasDatabase || !testDb)('should handle prescription and pharmacy workflow', async () => {
     // Test workflow:
     // 1. Create prescription
     // 2. Check drug interactions
@@ -50,7 +56,7 @@ describe('Healthcare System Integration', () => {
     expect(true).toBe(true);
   });
 
-  it('should handle insurance claim workflow', async () => {
+  it.skipIf(!hasDatabase || !testDb)('should handle insurance claim workflow', async () => {
     // Test workflow:
     // 1. Create charges
     // 2. Create claim (EDI 837)
@@ -61,7 +67,7 @@ describe('Healthcare System Integration', () => {
     expect(true).toBe(true);
   });
 
-  it('should audit all PHI access', async () => {
+  it.skipIf(!hasDatabase || !testDb)('should audit all PHI access', async () => {
     // Test that all patient data access is logged
     expect(true).toBe(true);
   });

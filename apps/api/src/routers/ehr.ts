@@ -9,6 +9,7 @@ import { eq, and, desc, count, ilike, or } from 'drizzle-orm';
 import { complianceAudited, getDb, schema } from '../procedures';
 import { ORPCError } from '@orpc/server';
 import { clinicalNotes, vitalSigns, diagnoses } from '@healthcare-saas/storage/db/schema';
+import { getOrCache } from '@healthcare-saas/storage/redis';
 
 // Validation schemas
 const createClinicalNoteSchema = z.object({
@@ -89,32 +90,42 @@ export const ehrRouter = {
     .handler(async ({ context, input }) => {
       const db = getDb(context);
 
-      const conditions = [
-        eq(clinicalNotes.organizationId, context.organization.id),
-        eq(clinicalNotes.patientId, input.patientId),
-      ];
+      // Cache key for list queries
+      const cacheKey = `ehr:notes:${context.organization.id}:${input.patientId}:${JSON.stringify(input)}`;
 
-      if (input.noteType) {
-        conditions.push(eq(clinicalNotes.noteType, input.noteType));
-      }
+      // Use cache for list queries (5 min TTL)
+      return getOrCache(
+        cacheKey,
+        async () => {
+          const conditions = [
+            eq(clinicalNotes.organizationId, context.organization.id),
+            eq(clinicalNotes.patientId, input.patientId),
+          ];
 
-      const notes = await db
-        .select()
-        .from(clinicalNotes)
-        .where(and(...conditions))
-        .orderBy(desc(clinicalNotes.visitDate))
-        .limit(input.limit)
-        .offset(input.offset);
+          if (input.noteType) {
+            conditions.push(eq(clinicalNotes.noteType, input.noteType));
+          }
 
-      const totalResult = await db
-        .select({ count: count() })
-        .from(clinicalNotes)
-        .where(and(...conditions));
+          const notes = await db
+            .select()
+            .from(clinicalNotes)
+            .where(and(...conditions))
+            .orderBy(desc(clinicalNotes.visitDate))
+            .limit(input.limit)
+            .offset(input.offset);
 
-      return {
-        notes,
-        total: totalResult[0]?.count || 0,
-      };
+          const totalResult = await db
+            .select({ count: count() })
+            .from(clinicalNotes)
+            .where(and(...conditions));
+
+          return {
+            notes,
+            total: totalResult[0]?.count || 0,
+          };
+        },
+        300 // 5 minutes
+      );
     }),
 
   /**
@@ -136,19 +147,29 @@ export const ehrRouter = {
     .handler(async ({ context, input }) => {
       const db = getDb(context);
 
-      const note = await db.query.clinicalNotes.findFirst({
-        where: (notes, { eq, and }) =>
-          and(
-            eq(notes.id, input.id),
-            eq(notes.organizationId, context.organization.id),
-          ),
-        with: {
-          patient: true,
-          author: true,
-          vitalSigns: true,
-          diagnoses: true,
+      // Cache key for individual note
+      const cacheKey = `ehr:note:${input.id}:${context.organization.id}`;
+
+      // Use cache (1 hour TTL for clinical note data)
+      const note = await getOrCache(
+        cacheKey,
+        async () => {
+          return db.query.clinicalNotes.findFirst({
+            where: (notes, { eq, and }) =>
+              and(
+                eq(notes.id, input.id),
+                eq(notes.organizationId, context.organization.id),
+              ),
+            with: {
+              patient: true,
+              author: true,
+              vitalSigns: true,
+              diagnoses: true,
+            },
+          });
         },
-      });
+        3600 // 1 hour
+      );
 
       if (!note) {
         throw new ORPCError({

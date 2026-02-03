@@ -9,6 +9,7 @@ import { eq, and, desc, count, ilike, or } from 'drizzle-orm';
 import { complianceAudited, getDb, schema } from '../procedures';
 import { ORPCError } from '@orpc/server';
 import { prescriptions, medicationCatalog, prescriptionRefills } from '@healthcare-saas/storage/db/schema';
+import { getOrCache } from '@healthcare-saas/storage/redis';
 
 // Validation schemas
 const createPrescriptionSchema = z.object({
@@ -113,44 +114,54 @@ export const prescriptionsRouter = {
       const db = getDb(context);
       const { patientId, status, search, limit, offset } = input;
 
-      const conditions = [
-        eq(prescriptions.organizationId, context.organization.id),
-      ];
+      // Cache key for list queries
+      const cacheKey = `prescriptions:${context.organization.id}:${JSON.stringify(input)}`;
 
-      if (patientId) {
-        conditions.push(eq(prescriptions.patientId, patientId));
-      }
+      // Use cache for list queries (5 min TTL)
+      return getOrCache(
+        cacheKey,
+        async () => {
+          const conditions = [
+            eq(prescriptions.organizationId, context.organization.id),
+          ];
 
-      if (status) {
-        conditions.push(eq(prescriptions.status, status));
-      }
+          if (patientId) {
+            conditions.push(eq(prescriptions.patientId, patientId));
+          }
 
-      if (search) {
-        conditions.push(
-          or(
-            ilike(prescriptions.prescriptionNumber, `%${search}%`),
-            ilike(prescriptions.medicationName, `%${search}%`),
-          )!,
-        );
-      }
+          if (status) {
+            conditions.push(eq(prescriptions.status, status));
+          }
 
-      const prescriptionsList = await db
-        .select()
-        .from(prescriptions)
-        .where(and(...conditions))
-        .orderBy(desc(prescriptions.prescriptionDate))
-        .limit(limit)
-        .offset(offset);
+          if (search) {
+            conditions.push(
+              or(
+                ilike(prescriptions.prescriptionNumber, `%${search}%`),
+                ilike(prescriptions.medicationName, `%${search}%`),
+              )!,
+            );
+          }
 
-      const totalResult = await db
-        .select({ count: count() })
-        .from(prescriptions)
-        .where(and(...conditions));
+          const prescriptionsList = await db
+            .select()
+            .from(prescriptions)
+            .where(and(...conditions))
+            .orderBy(desc(prescriptions.prescriptionDate))
+            .limit(limit)
+            .offset(offset);
 
-      return {
-        prescriptions: prescriptionsList,
-        total: totalResult[0]?.count || 0,
-      };
+          const totalResult = await db
+            .select({ count: count() })
+            .from(prescriptions)
+            .where(and(...conditions));
+
+          return {
+            prescriptions: prescriptionsList,
+            total: totalResult[0]?.count || 0,
+          };
+        },
+        300 // 5 minutes
+      );
     }),
 
   /**
@@ -172,19 +183,29 @@ export const prescriptionsRouter = {
     .handler(async ({ context, input }) => {
       const db = getDb(context);
 
-      const prescription = await db.query.prescriptions.findFirst({
-        where: (prescriptions, { eq, and }) =>
-          and(
-            eq(prescriptions.id, input.id),
-            eq(prescriptions.organizationId, context.organization.id),
-          ),
-        with: {
-          patient: true,
-          medication: true,
-          prescriber: true,
-          refills: true,
+      // Cache key for individual prescription
+      const cacheKey = `prescription:${input.id}:${context.organization.id}`;
+
+      // Use cache (1 hour TTL for prescription data)
+      const prescription = await getOrCache(
+        cacheKey,
+        async () => {
+          return db.query.prescriptions.findFirst({
+            where: (prescriptions, { eq, and }) =>
+              and(
+                eq(prescriptions.id, input.id),
+                eq(prescriptions.organizationId, context.organization.id),
+              ),
+            with: {
+              patient: true,
+              medication: true,
+              prescriber: true,
+              refills: true,
+            },
+          });
         },
-      });
+        3600 // 1 hour
+      );
 
       if (!prescription) {
         throw new ORPCError({

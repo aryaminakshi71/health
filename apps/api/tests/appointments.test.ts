@@ -3,12 +3,19 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { testDb } from './setup';
+import { testDb, hasDatabase } from './setup';
 import { appointments } from '@healthcare-saas/storage/db/schema';
 
 describe('Appointments Router', () => {
   beforeEach(async () => {
-    await testDb.delete(appointments);
+    if (!hasDatabase || !testDb) {
+      return;
+    }
+    try {
+      await testDb.delete(appointments);
+    } catch (error) {
+      // Ignore cleanup errors if DB not available
+    }
   });
 
   it('should create an appointment', async () => {
