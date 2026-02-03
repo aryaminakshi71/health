@@ -48,6 +48,8 @@ export const Route = createRootRoute({
 function RootDocument() {
   useEffect(() => {
     registerServiceWorker();
+    // Add skip link for accessibility
+    addSkipLink("main-content", "Skip to main content");
   }, []);
 
   const isWellness = useRouterState({
@@ -88,11 +90,11 @@ function RootDocument() {
         <PostHogProvider>
           <QueryClientProvider client={queryClient}>
             {isWellness ? (
-              <main id="main-content">
+              <main id="main-content" tabIndex={-1}>
                 <Outlet />
               </main>
             ) : (
-              <div className="min-h-screen bg-gray-50">
+              <div className="min-h-screen bg-gray-50" id="main-content" tabIndex={-1}>
                 <nav className="bg-white shadow-sm border-b">
                   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex flex-wrap items-center justify-between gap-4 py-4">

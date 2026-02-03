@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SubscriptionRouteImport } from './routes/subscription'
 import { Route as HealthcareHubDashboardRouteImport } from './routes/healthcare-hub-dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WellnessIndexRouteImport } from './routes/wellness/index'
@@ -39,6 +40,11 @@ import { Route as PatientsIdAppointmentsRouteImport } from './routes/patients/$i
 import { Route as ModulesHospitalEhrSectionRouteImport } from './routes/modules/hospital-ehr/$section'
 import { Route as ModulesHospitalEhrSectionSubsectionRouteImport } from './routes/modules/hospital-ehr/$section/$subsection'
 
+const SubscriptionRoute = SubscriptionRouteImport.update({
+  id: '/subscription',
+  path: '/subscription',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HealthcareHubDashboardRoute = HealthcareHubDashboardRouteImport.update({
   id: '/healthcare-hub-dashboard',
   path: '/healthcare-hub-dashboard',
@@ -191,6 +197,7 @@ const ModulesHospitalEhrSectionSubsectionRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/healthcare-hub-dashboard': typeof HealthcareHubDashboardRoute
+  '/subscription': typeof SubscriptionRoute
   '/appointments/$id': typeof AppointmentsIdRoute
   '/modules/healthcare-hub': typeof ModulesHealthcareHubRoute
   '/modules/hospital-ehr': typeof ModulesHospitalEhrRouteWithChildren
@@ -222,6 +229,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/healthcare-hub-dashboard': typeof HealthcareHubDashboardRoute
+  '/subscription': typeof SubscriptionRoute
   '/appointments/$id': typeof AppointmentsIdRoute
   '/modules/healthcare-hub': typeof ModulesHealthcareHubRoute
   '/modules/hospital-ehr': typeof ModulesHospitalEhrRouteWithChildren
@@ -254,6 +262,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/healthcare-hub-dashboard': typeof HealthcareHubDashboardRoute
+  '/subscription': typeof SubscriptionRoute
   '/appointments/$id': typeof AppointmentsIdRoute
   '/modules/healthcare-hub': typeof ModulesHealthcareHubRoute
   '/modules/hospital-ehr': typeof ModulesHospitalEhrRouteWithChildren
@@ -287,6 +296,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/healthcare-hub-dashboard'
+    | '/subscription'
     | '/appointments/$id'
     | '/modules/healthcare-hub'
     | '/modules/hospital-ehr'
@@ -318,6 +328,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/healthcare-hub-dashboard'
+    | '/subscription'
     | '/appointments/$id'
     | '/modules/healthcare-hub'
     | '/modules/hospital-ehr'
@@ -349,6 +360,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/healthcare-hub-dashboard'
+    | '/subscription'
     | '/appointments/$id'
     | '/modules/healthcare-hub'
     | '/modules/hospital-ehr'
@@ -381,6 +393,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   HealthcareHubDashboardRoute: typeof HealthcareHubDashboardRoute
+  SubscriptionRoute: typeof SubscriptionRoute
   AppointmentsIdRoute: typeof AppointmentsIdRoute
   ModulesHealthcareHubRoute: typeof ModulesHealthcareHubRoute
   ModulesHospitalEhrRoute: typeof ModulesHospitalEhrRouteWithChildren
@@ -405,6 +418,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/subscription': {
+      id: '/subscription'
+      path: '/subscription'
+      fullPath: '/subscription'
+      preLoaderRoute: typeof SubscriptionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/healthcare-hub-dashboard': {
       id: '/healthcare-hub-dashboard'
       path: '/healthcare-hub-dashboard'
@@ -660,6 +680,7 @@ const PatientsIdRouteWithChildren = PatientsIdRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   HealthcareHubDashboardRoute: HealthcareHubDashboardRoute,
+  SubscriptionRoute: SubscriptionRoute,
   AppointmentsIdRoute: AppointmentsIdRoute,
   ModulesHealthcareHubRoute: ModulesHealthcareHubRoute,
   ModulesHospitalEhrRoute: ModulesHospitalEhrRouteWithChildren,

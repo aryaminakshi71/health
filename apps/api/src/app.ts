@@ -18,6 +18,7 @@ import { loggerMiddleware } from "./middleware/logger";
 import { initSentry } from "./lib/sentry";
 import { initDatadog } from "./lib/datadog";
 import { rateLimitRedis } from "./middleware/rate-limit-redis";
+import { setSecurityHeaders } from "./lib/security";
 import type { AppEnv, InitialContext } from "./context";
 
 /**
@@ -34,6 +35,12 @@ export function createApp() {
   app.use("*", cors({ origin: (origin: string | null) => origin, credentials: true }));
   app.use("*", requestId());
   app.use("*", loggerMiddleware);
+  
+  // Security headers middleware
+  app.use("*", async (c, next) => {
+    await next();
+    setSecurityHeaders(c.res.headers);
+  });
 
   // Rate limiting middleware
   app.use("/api/*", rateLimitRedis({ limiterType: "api" }));
@@ -139,12 +146,29 @@ export function createApp() {
           bearerAuth: {
             type: "http",
             scheme: "bearer",
+            bearerFormat: "JWT",
+            description: "JWT token from Better Auth",
           },
         },
       },
+      tags: [
+        { name: "Health", description: "Health management operations" },
+        { name: "System", description: "System endpoints" },
+      ],
     });
 
     return c.json(spec);
+  });
+
+  // Scalar API Documentation UI
+  app.get("/api/docs", async (c: any) => {
+    const { Scalar } = await import("@scalar/hono-api-reference");
+    return Scalar({
+      spec: {
+        url: "/api/openapi.json",
+      },
+      theme: "purple",
+    })(c);
   });
 
   return app;
