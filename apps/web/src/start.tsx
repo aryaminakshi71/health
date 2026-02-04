@@ -1,9 +1,7 @@
-import { StartClient } from "@tanstack/react-start";
-import { hydrateRoot } from "react-dom/client";
-import { getRouter } from "./router";
+import { createStart } from "@tanstack/react-start";
 
-const router = getRouter();
-hydrateRoot(
-  document.getElementById("root")!,
-  <StartClient router={router} />
-);
+export const startInstance = createStart(() => {
+  return {
+    defaultSsr: true,
+  };
+});
