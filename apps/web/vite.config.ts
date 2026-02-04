@@ -7,10 +7,17 @@ import viteTsConfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
 import { visualizer } from 'rollup-plugin-visualizer'
 import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(({ mode }) => {
+  // Capture PORT from shell BEFORE loadEnv (which might load PORT from .env)
+  const shellPort = process.env.PORT;
   // Load env from root (../../)
   const env = loadEnv(mode, path.resolve(__dirname, "../../"), "");
+  // PORT from shell environment takes highest priority
+  const port = shellPort || env.PORT || "3000";
   process.env = { ...process.env, ...env };
 
   return {
@@ -20,6 +27,7 @@ export default defineConfig(({ mode }) => {
       exclude: [
         '@healthcare/env',
         "@healthcare/api",
+        "dd-trace", // Exclude dd-trace from optimization (CommonJS module)
       ],
     },
     build: {
@@ -32,13 +40,15 @@ export default defineConfig(({ mode }) => {
           // Externalize Cloudflare-specific modules
           "cloudflare:workers",
           "@scalar/hono-api-reference",
+          // Exclude dd-trace from web bundle (CommonJS module incompatible with ESM)
+          "dd-trace",
         ],
       },
     },
     server: {
-      port: Number(process.env.PORT) || 3000,
+      port: Number(port),
       host: true,
-      strictPort: false,
+      strictPort: true,
     },
     plugins: [
       viteTsConfigPaths(),

@@ -29,7 +29,11 @@ export function createApp() {
 
   // Initialize monitoring
   initSentry();
-  initDatadog();
+  // Datadog initialization - skip if dd-trace fails (common in dev environments)
+  // Note: initDatadog is async but we don't await it to avoid blocking app creation
+  initDatadog().catch((error) => {
+    console.warn("Datadog initialization failed (this is OK in dev):", error);
+  });
 
   // Global middleware
   app.use("*", cors({ origin: (origin: string | null) => origin, credentials: true }));
@@ -42,11 +46,7 @@ export function createApp() {
     setSecurityHeaders(c.res.headers);
   });
 
-  // Rate limiting middleware
-  app.use("/api/*", rateLimitRedis({ limiterType: "api" }));
-  app.use("/api/auth/*", rateLimitRedis({ limiterType: "auth" }));
-
-  // Health check (non-RPC)
+  // Health check (non-RPC) - must be before rate limiting
   app.get("/api/health", (c: any) => {
     return c.json({
       status: "ok",
@@ -54,6 +54,10 @@ export function createApp() {
       version: "1.0.0",
     });
   });
+
+  // Rate limiting middleware
+  app.use("/api/*", rateLimitRedis({ limiterType: "api" }));
+  app.use("/api/auth/*", rateLimitRedis({ limiterType: "auth" }));
 
   // Better Auth handler
   app.on(["GET", "POST"], "/api/auth/*", async (c: any) => {

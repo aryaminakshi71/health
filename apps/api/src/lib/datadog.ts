@@ -5,7 +5,30 @@
  * Gracefully degrades if DATADOG_API_KEY is not configured.
  */
 
-import * as tracer from "dd-trace";
+// Lazy load tracer to avoid bundling issues in web context
+let tracer: any = null;
+let tracerPromise: Promise<any> | null = null;
+
+async function loadTracer() {
+  if (tracer) return tracer;
+  if (tracerPromise) return tracerPromise;
+  
+  tracerPromise = (async () => {
+    try {
+      // Only import in Node.js/API context, not in Cloudflare Workers/web context
+      if (typeof process !== 'undefined' && process.versions?.node) {
+        const ddTrace = await import("dd-trace");
+        tracer = ddTrace;
+        return ddTrace;
+      }
+    } catch {
+      // dd-trace not available (e.g., in web/Cloudflare context)
+    }
+    return null;
+  })();
+  
+  return tracerPromise;
+}
 
 const isConfigured = !!process.env.DATADOG_API_KEY;
 
@@ -17,10 +40,14 @@ if (!isConfigured) {
  * Initialize Datadog APM
  * Call this early in your application startup
  */
-export function initDatadog() {
+export async function initDatadog() {
   if (!isConfigured) return;
+  
+  const loadedTracer = await loadTracer();
+  if (!loadedTracer) return; // Skip if tracer not loaded (e.g., in web context)
 
-  tracer.init({
+  try {
+    loadedTracer.init({
     service: process.env.DATADOG_SERVICE_NAME || "health-api",
     env: process.env.DATADOG_ENV || process.env.NODE_ENV || "development",
     version: process.env.DATADOG_VERSION || "1.0.0",
@@ -38,21 +65,29 @@ export function initDatadog() {
       },
     },
   });
+  } catch (error) {
+    console.warn("Datadog tracer.init() failed (this is OK in dev):", error);
+  }
 }
 
 /**
  * Create a span for tracing
  */
-export function createSpan<T>(
+export async function createSpan<T>(
   name: string,
   operation: string,
   callback: () => T | Promise<T>
-): T | Promise<T> {
+): Promise<T> {
   if (!isConfigured) {
     return callback();
   }
 
-  return tracer.trace(name, { type: operation }, callback);
+  const loadedTracer = await loadTracer();
+  if (!loadedTracer) {
+    return callback();
+  }
+
+  return loadedTracer.trace(name, { type: operation }, callback);
 }
 
 /**

@@ -12,7 +12,11 @@ import { appRouter } from './routers';
 
 // Initialize monitoring
 initSentry();
-initDatadog();
+// Datadog initialization - skip if dd-trace fails (common in dev environments)
+// Note: initDatadog is async but we don't await it to avoid blocking startup
+initDatadog().catch((error) => {
+  console.warn("Datadog initialization failed (this is OK in dev):", error);
+});
 
 const handler = new RPCHandler(appRouter, {
   interceptors: [

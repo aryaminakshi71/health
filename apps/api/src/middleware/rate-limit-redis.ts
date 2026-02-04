@@ -68,6 +68,12 @@ export async function checkRateLimit(options: RateLimitOptions): Promise<void> {
  */
 export function rateLimitRedis(options: Partial<RateLimitOptions & { keyGenerator?: (c: Context) => string }> = {}) {
   return async (c: Context, next: Next) => {
+    // Skip rate limiting for health endpoints
+    if (c.req.path === "/api/health" || c.req.path === "/health") {
+      await next();
+      return;
+    }
+
     const keyGenerator = options.keyGenerator || ((c: Context) => {
       const ip = c.req.header("x-forwarded-for") || c.req.header("x-real-ip") || "unknown";
       return `ip:${ip}`;
