@@ -25,6 +25,7 @@ import { Route as WellnessProfileRouteImport } from './routes/wellness/profile'
 import { Route as WellnessMoodRouteImport } from './routes/wellness/mood'
 import { Route as WellnessMeditateRouteImport } from './routes/wellness/meditate'
 import { Route as WellnessFitnessRouteImport } from './routes/wellness/fitness'
+import { Route as SitemapXmlRouteImport } from './routes/sitemap.xml'
 import { Route as PatientsIdRouteImport } from './routes/patients/$id'
 import { Route as ModulesSurakshaWebPortalRouteImport } from './routes/modules/suraksha-web-portal'
 import { Route as ModulesSurakshaPatientRouteImport } from './routes/modules/suraksha-patient'
@@ -120,6 +121,11 @@ const WellnessFitnessRoute = WellnessFitnessRouteImport.update({
   path: '/wellness/fitness',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SitemapXmlRoute = SitemapXmlRouteImport.update({
+  id: '/sitemap/xml',
+  path: '/sitemap/xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PatientsIdRoute = PatientsIdRouteImport.update({
   id: '/patients/$id',
   path: '/patients/$id',
@@ -205,6 +211,7 @@ export interface FileRoutesByFullPath {
   '/modules/suraksha-patient': typeof ModulesSurakshaPatientRoute
   '/modules/suraksha-web-portal': typeof ModulesSurakshaWebPortalRoute
   '/patients/$id': typeof PatientsIdRouteWithChildren
+  '/sitemap/xml': typeof SitemapXmlRoute
   '/wellness/fitness': typeof WellnessFitnessRoute
   '/wellness/meditate': typeof WellnessMeditateRoute
   '/wellness/mood': typeof WellnessMoodRoute
@@ -237,6 +244,7 @@ export interface FileRoutesByTo {
   '/modules/suraksha-patient': typeof ModulesSurakshaPatientRoute
   '/modules/suraksha-web-portal': typeof ModulesSurakshaWebPortalRoute
   '/patients/$id': typeof PatientsIdRouteWithChildren
+  '/sitemap/xml': typeof SitemapXmlRoute
   '/wellness/fitness': typeof WellnessFitnessRoute
   '/wellness/meditate': typeof WellnessMeditateRoute
   '/wellness/mood': typeof WellnessMoodRoute
@@ -270,6 +278,7 @@ export interface FileRoutesById {
   '/modules/suraksha-patient': typeof ModulesSurakshaPatientRoute
   '/modules/suraksha-web-portal': typeof ModulesSurakshaWebPortalRoute
   '/patients/$id': typeof PatientsIdRouteWithChildren
+  '/sitemap/xml': typeof SitemapXmlRoute
   '/wellness/fitness': typeof WellnessFitnessRoute
   '/wellness/meditate': typeof WellnessMeditateRoute
   '/wellness/mood': typeof WellnessMoodRoute
@@ -304,6 +313,7 @@ export interface FileRouteTypes {
     | '/modules/suraksha-patient'
     | '/modules/suraksha-web-portal'
     | '/patients/$id'
+    | '/sitemap/xml'
     | '/wellness/fitness'
     | '/wellness/meditate'
     | '/wellness/mood'
@@ -336,6 +346,7 @@ export interface FileRouteTypes {
     | '/modules/suraksha-patient'
     | '/modules/suraksha-web-portal'
     | '/patients/$id'
+    | '/sitemap/xml'
     | '/wellness/fitness'
     | '/wellness/meditate'
     | '/wellness/mood'
@@ -368,6 +379,7 @@ export interface FileRouteTypes {
     | '/modules/suraksha-patient'
     | '/modules/suraksha-web-portal'
     | '/patients/$id'
+    | '/sitemap/xml'
     | '/wellness/fitness'
     | '/wellness/meditate'
     | '/wellness/mood'
@@ -401,6 +413,7 @@ export interface RootRouteChildren {
   ModulesSurakshaPatientRoute: typeof ModulesSurakshaPatientRoute
   ModulesSurakshaWebPortalRoute: typeof ModulesSurakshaWebPortalRoute
   PatientsIdRoute: typeof PatientsIdRouteWithChildren
+  SitemapXmlRoute: typeof SitemapXmlRoute
   WellnessFitnessRoute: typeof WellnessFitnessRoute
   WellnessMeditateRoute: typeof WellnessMeditateRoute
   WellnessMoodRoute: typeof WellnessMoodRoute
@@ -528,6 +541,13 @@ declare module '@tanstack/react-router' {
       path: '/wellness/fitness'
       fullPath: '/wellness/fitness'
       preLoaderRoute: typeof WellnessFitnessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap/xml': {
+      id: '/sitemap/xml'
+      path: '/sitemap/xml'
+      fullPath: '/sitemap/xml'
+      preLoaderRoute: typeof SitemapXmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/patients/$id': {
@@ -688,6 +708,7 @@ const rootRouteChildren: RootRouteChildren = {
   ModulesSurakshaPatientRoute: ModulesSurakshaPatientRoute,
   ModulesSurakshaWebPortalRoute: ModulesSurakshaWebPortalRoute,
   PatientsIdRoute: PatientsIdRouteWithChildren,
+  SitemapXmlRoute: SitemapXmlRoute,
   WellnessFitnessRoute: WellnessFitnessRoute,
   WellnessMeditateRoute: WellnessMeditateRoute,
   WellnessMoodRoute: WellnessMoodRoute,

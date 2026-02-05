@@ -19,7 +19,7 @@
     "dev:standalone": "bun run src/index.ts",
     "build": "tsc",
     "start": "bun run dist/index.js",
-    "test": "vitest",
+    "test": "vitest run",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
     "typecheck": "tsc --noEmit",

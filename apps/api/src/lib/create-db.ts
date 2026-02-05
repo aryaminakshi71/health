@@ -56,8 +56,6 @@ export function createDb(
   }
 
   // Production/Cloudflare: Use Neon Serverless (works with Hyperdrive connection strings)
-  // Optimize Neon for Cloudflare Workers
-  neonConfig.fetchConnectionCache = true;
 
   // drizzle-orm/neon-serverless accepts connection string directly
   return drizzleNeon(url, { schema }) as any;

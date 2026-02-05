@@ -31,8 +31,9 @@ async function loadTracer() {
 }
 
 const isConfigured = !!process.env.DATADOG_API_KEY;
+const shouldWarnMissing = process.env.NODE_ENV === "production";
 
-if (!isConfigured) {
+if (!isConfigured && shouldWarnMissing) {
   console.warn("DATADOG_API_KEY not set - APM disabled");
 }
 

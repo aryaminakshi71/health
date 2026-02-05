@@ -8,6 +8,10 @@ import { beforeAll, afterAll } from 'vitest';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 
+// Ensure required env vars exist for module-level schema validation
+process.env.DATABASE_URL ??= 'postgresql://postgres:postgres@localhost:5432/health_test';
+process.env.BETTER_AUTH_SECRET ??= 'test-secret-32-characters-long-000000';
+
 let testDb: ReturnType<typeof drizzle> | null = null;
 let testClient: ReturnType<typeof postgres> | null = null;
 let hasDatabase = false;

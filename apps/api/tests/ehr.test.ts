@@ -4,7 +4,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { testDb, hasDatabase } from './setup';
-import { ehrRouter } from '../routers/ehr';
+import { ehrRouter } from '../src/routers/ehr';
 import { createMockOrgContext, createTestPatient, createTestOrganization } from './test-utils';
 import { clinicalNotes, vitalSigns, diagnoses, patients, organizations } from '@healthcare-saas/storage/db/schema';
 import { eq } from 'drizzle-orm';

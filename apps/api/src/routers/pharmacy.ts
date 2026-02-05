@@ -38,64 +38,6 @@ function generateDispensationNumber(organizationId: string, count: number): stri
 
 export const pharmacyRouter = {
   /**
-   * Get medication catalog
-   */
-  getMedicationCatalog: complianceAudited
-    .route({
-      method: 'GET',
-      path: '/pharmacy/medications',
-      summary: 'Get medication catalog',
-      tags: ['Pharmacy'],
-    })
-    .input(
-      z.object({
-        search: z.string().optional(),
-        limit: z.coerce.number().int().min(1).max(100).optional().default(50),
-        offset: z.coerce.number().int().min(0).optional().default(0),
-      }),
-    )
-    .output(
-      z.object({
-        medications: z.array(z.any()),
-        total: z.number(),
-      }),
-    )
-    .handler(async ({ context, input }) => {
-      const db = getDb(context);
-
-      const conditions = [
-        eq(medications.organizationId, context.organization.id),
-      ];
-
-      if (input.search) {
-        conditions.push(
-          or(
-            ilike(medications.medicationName, `%${input.search}%`),
-            ilike(medications.genericName, `%${input.search}%`),
-          ),
-        );
-      }
-
-      const medicationsList = await db
-        .select()
-        .from(medications)
-        .where(and(...conditions))
-        .orderBy(medications.medicationName)
-        .limit(input.limit)
-        .offset(input.offset);
-
-      const totalResult = await db
-        .select({ count: count() })
-        .from(medications)
-        .where(and(...conditions));
-
-      return {
-        medications: medicationsList,
-        total: totalResult[0]?.count || 0,
-      };
-    }),
-
-  /**
    * Dispense prescription
    */
   dispense: complianceAudited
