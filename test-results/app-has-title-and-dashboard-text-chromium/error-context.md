@@ -1,0 +1,105 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - heading "HEALTHCARE OS" [level=1] [ref=e5]
+    - paragraph [ref=e6]: Unified Healthcare Management System
+  - generic [ref=e7]:
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - generic [ref=e10]:
+          - img [ref=e12]
+          - generic [ref=e15]:
+            - heading "Wellness (Serenity)" [level=3] [ref=e16]
+            - paragraph [ref=e17]: Mental health, meditation, fitness, mood, sleep
+        - generic [ref=e18]: Live
+      - list [ref=e19]:
+        - listitem [ref=e20]: • Personalized dashboard
+        - listitem [ref=e21]: • Mood, meditation, fitness, sleep tracking
+        - listitem [ref=e22]: • Local data storage and profile goals
+      - link "Open module" [ref=e24] [cursor=pointer]:
+        - /url: /wellness
+        - text: Open module
+        - img [ref=e25]
+    - generic [ref=e28]:
+      - generic [ref=e29]:
+        - generic [ref=e30]:
+          - img [ref=e32]
+          - generic [ref=e36]:
+            - heading "Healthcare Hub" [level=3] [ref=e37]
+            - paragraph [ref=e38]: Unified platform modules from legacy healthcare hub
+        - generic [ref=e39]: Integrated
+      - list [ref=e40]:
+        - listitem [ref=e41]: • ERP-style module catalog
+        - listitem [ref=e42]: • Operational dashboards
+        - listitem [ref=e43]: • Finance, analytics, security, automation
+      - link "Open module" [ref=e45] [cursor=pointer]:
+        - /url: /healthcare-hub-dashboard
+        - text: Open module
+        - img [ref=e46]
+    - generic [ref=e49]:
+      - generic [ref=e50]:
+        - generic [ref=e51]:
+          - img [ref=e53]
+          - generic [ref=e55]:
+            - heading "Hospital EHR" [level=3] [ref=e56]
+            - paragraph [ref=e57]: Clinical operations from legacy hospital EHR
+        - generic [ref=e58]: Mapped
+      - list [ref=e59]:
+        - listitem [ref=e60]: • OPD/IPD, lab, radiology, pharmacy
+        - listitem [ref=e61]: • Appointments, billing, reports
+        - listitem [ref=e62]: • Critical care and emergency flows
+      - link "Open module" [ref=e64] [cursor=pointer]:
+        - /url: /modules/hospital-ehr
+        - text: Open module
+        - img [ref=e65]
+    - generic [ref=e68]:
+      - generic [ref=e69]:
+        - generic [ref=e70]:
+          - img [ref=e72]
+          - generic [ref=e77]:
+            - heading "Suraksha ASHA App" [level=3] [ref=e78]
+            - paragraph [ref=e79]: Community health worker workflows (archive)
+        - generic [ref=e80]: Archive empty
+      - list [ref=e81]:
+        - listitem [ref=e82]: • Directory exists but has no source files
+        - listitem [ref=e83]: • Ready for migration once code is added
+        - listitem [ref=e84]: • Reserved module route and shell
+      - link "Open module" [ref=e86] [cursor=pointer]:
+        - /url: /modules/suraksha-asha
+        - text: Open module
+        - img [ref=e87]
+    - generic [ref=e90]:
+      - generic [ref=e91]:
+        - generic [ref=e92]:
+          - img [ref=e94]
+          - generic [ref=e97]:
+            - heading "Suraksha Patient App" [level=3] [ref=e98]
+            - paragraph [ref=e99]: Patient-facing app (archive)
+        - generic [ref=e100]: Archive empty
+      - list [ref=e101]:
+        - listitem [ref=e102]: • Directory exists but has no source files
+        - listitem [ref=e103]: • Ready for migration once code is added
+        - listitem [ref=e104]: • Reserved module route and shell
+      - link "Open module" [ref=e106] [cursor=pointer]:
+        - /url: /modules/suraksha-patient
+        - text: Open module
+        - img [ref=e107]
+    - generic [ref=e110]:
+      - generic [ref=e111]:
+        - generic [ref=e112]:
+          - img [ref=e114]
+          - generic [ref=e116]:
+            - heading "Suraksha Web Portal" [level=3] [ref=e117]
+            - paragraph [ref=e118]: Admin web portal (archive)
+        - generic [ref=e119]: Archive empty
+      - list [ref=e120]:
+        - listitem [ref=e121]: • Directory exists but has no source files
+        - listitem [ref=e122]: • Ready for migration once code is added
+        - listitem [ref=e123]: • Reserved module route and shell
+      - link "Open module" [ref=e125] [cursor=pointer]:
+        - /url: /modules/suraksha-web-portal
+        - text: Open module
+        - img [ref=e126]
+```

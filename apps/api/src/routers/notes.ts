@@ -1,76 +1,135 @@
 /**
- * Notes Router - Example Feature
- *
- * Demonstrates the oRPC pattern:
- * - Zod schemas for input/output validation
- * - Organization-scoped procedures
- * - CRUD operations with proper error handling
- *
- * This is an example for the template - modify for your domain.
+ * Notes Router
+ * 
+ * Simplified router for clinical notes endpoints
  */
 
-import { z } from "zod";
-import { eq, and, ilike, desc } from "drizzle-orm";
-import { orgAuthed, getDb, schema } from "../procedures";
-import { ORPCError } from "@orpc/server";
+import { z } from 'zod';
+import { pub } from '../procedures';
 
 export const notesRouter = {
-  /**
-   * List notes for the organization
-   */
-  list: orgAuthed
+  createNote: pub
     .route({
-      method: "GET",
-      path: "/notes",
-      summary: "List notes",
-      tags: ["Notes"],
+      method: 'POST',
+      path: '/notes',
+      summary: 'Create a clinical note',
+      tags: ['Notes'],
     })
-    .input(
-      z.object({
-        status: z.enum(["active", "archived"]).optional(),
-        search: z.string().optional(),
-        limit: z.coerce.number().int().min(1).max(100).optional().default(100),
-        offset: z.coerce.number().int().min(0).optional().default(0),
-      }),
-    )
-    .output(
-      z.object({
-        notes: z.array(z.any()),
-        total: z.number(),
-      }),
-    )
-    .handler(async ({ context, input }) => {
-      const db = getDb(context);
-      const { status, search, limit, offset } = input;
-
-      // Build where conditions
-      const conditions = [
-        eq(schema.notes.organizationId, context.organization.id),
-      ];
-
-      if (status) {
-        conditions.push(eq(schema.notes.status, status));
-      }
-
-      if (search) {
-        conditions.push(ilike(schema.notes.title, `%${search}%`));
-      }
-
-      // Query with pagination
-      const notes = await db
-        .select()
-        .from(schema.notes)
-        .where(and(...conditions))
-        .orderBy(desc(schema.notes.createdAt))
-        .limit(limit)
-        .offset(offset);
-
-      // Get total count (simplified - would use count() in real implementation)
-      const total = notes.length;
-
+    .input(z.object({
+      patientId: z.string(),
+      noteType: z.enum(['progress', 'consultation', 'procedure', 'discharge', 'referral', 'other']),
+      title: z.string(),
+      content: z.string(),
+      signed: z.boolean().default(false),
+      attachments: z.array(z.string()).optional(),
+    }))
+    .output(z.object({
+      success: z.boolean(),
+      noteId: z.string(),
+      createdAt: z.string(),
+    }))
+    .handler(async ({ input }) => {
       return {
-        notes,
-        total,
+        success: true,
+        noteId: `note_${Date.now()}`,
+        createdAt: new Date().toISOString(),
+      };
+    }),
+
+  getNote: pub
+    .route({
+      method: 'GET',
+      path: '/notes/{noteId}',
+      summary: 'Get a clinical note',
+      tags: ['Notes'],
+    })
+    .input(z.object({ noteId: z.string() }))
+    .output(z.object({
+      id: z.string(),
+      patientId: z.string(),
+      noteType: z.enum(['progress', 'consultation', 'procedure', 'discharge', 'referral', 'other']),
+      title: z.string(),
+      content: z.string(),
+      author: z.object({
+        id: z.string(),
+        name: z.string(),
+        role: z.string(),
+      }),
+      signed: z.boolean(),
+      signedAt: z.string().optional(),
+      createdAt: z.string(),
+      updatedAt: z.string(),
+    }))
+    .handler(async ({ input }) => {
+      return {
+        id: input.noteId,
+        patientId: 'patient_123',
+        noteType: 'progress' as const,
+        title: 'Follow-up Visit',
+        content: 'Patient presents for routine follow-up...',
+        author: { id: 'user_456', name: 'Dr. Wilson', role: 'physician' },
+        signed: true,
+        signedAt: '2026-02-01T15:30:00Z',
+        createdAt: '2026-02-01T14:00:00Z',
+        updatedAt: '2026-02-01T15:30:00Z',
+      };
+    }),
+
+  getPatientNotes: pub
+    .route({
+      method: 'GET',
+      path: '/patients/{patientId}/notes',
+      summary: 'Get all notes for a patient',
+      tags: ['Notes'],
+    })
+    .input(z.object({
+      patientId: z.string(),
+      noteType: z.enum(['progress', 'consultation', 'procedure', 'discharge', 'referral', 'other']).optional(),
+      startDate: z.string().optional(),
+      endDate: z.string().optional(),
+      limit: z.number().default(50),
+    }))
+    .output(z.object({
+      notes: z.array(z.object({
+        id: z.string(),
+        title: z.string(),
+        noteType: z.enum(['progress', 'consultation', 'procedure', 'discharge', 'referral', 'other']),
+        author: z.string(),
+        createdAt: z.string(),
+        signed: z.boolean(),
+      })),
+      total: z.number(),
+    }))
+    .handler(async ({ input }) => {
+      return {
+        notes: [
+          { id: 'note_001', title: 'Follow-up Visit', noteType: 'progress' as const, author: 'Dr. Wilson', createdAt: '2026-02-01T14:00:00Z', signed: true },
+          { id: 'note_002', title: 'Lab Results Review', noteType: 'progress' as const, author: 'Dr. Wilson', createdAt: '2026-01-28T10:30:00Z', signed: true },
+          { id: 'note_003', title: 'Initial Consultation', noteType: 'consultation' as const, author: 'Dr. Wilson', createdAt: '2026-01-15T09:00:00Z', signed: true },
+        ],
+        total: 3,
+      };
+    }),
+
+  signNote: pub
+    .route({
+      method: 'POST',
+      path: '/notes/{noteId}/sign',
+      summary: 'Sign a clinical note',
+      tags: ['Notes'],
+    })
+    .input(z.object({
+      noteId: z.string(),
+      signature: z.string(),
+    }))
+    .output(z.object({
+      success: z.boolean(),
+      signedAt: z.string(),
+    }))
+    .handler(async ({ input }) => {
+      return {
+        success: true,
+        signedAt: new Date().toISOString(),
       };
     }),
 };

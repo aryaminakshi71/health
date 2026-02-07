@@ -1,3 +1,4 @@
+export { organizationRoleEnum } from './auth.schema'
 export * from './auth.schema'
 export * from './auth.validators'
 export * from './tickets.schema'

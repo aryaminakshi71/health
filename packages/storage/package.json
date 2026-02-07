@@ -4,16 +4,19 @@
   "type": "module",
   "main": "./src/db/schema/index.ts",
   "exports": {
-    ".": "./src/db/schema/index.ts",
+    ".": {
+      "types": "./src/db/schema/index.ts",
+      "import": "./src/db/index.ts"
+    },
     "./db/schema": "./src/db/schema/index.ts",
     "./db/schema/*": "./src/db/schema/*",
     "./redis": "./src/redis/index.ts"
   },
   "scripts": {
-    "db:generate": "drizzle-kit generate",
-    "db:push": "drizzle-kit push",
-    "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:generate": "dotenv -e ../../.env -- drizzle-kit generate",
+    "db:push": "dotenv -e ../../.env -- drizzle-kit push",
+    "db:migrate": "dotenv -e ../../.env -- drizzle-kit migrate",
+    "db:studio": "dotenv -e ../../.env -- drizzle-kit studio"
   },
   "dependencies": {
     "@healthcare-saas/env": "workspace:*",

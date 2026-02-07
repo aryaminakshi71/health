@@ -25,9 +25,11 @@ export default defineConfig(({ mode }) => {
     optimizeDeps: {
       // Exclude workspace packages so they are compiled as source
       exclude: [
-        '@healthcare/env',
-        "@healthcare/api",
-        "dd-trace", // Exclude dd-trace from optimization (CommonJS module)
+        '@healthcare-saas/env',
+        "@healthcare-saas/api",
+        "@healthcare-saas/core",
+        "@healthcare-saas/storage",
+        "dd-trace",
       ],
     },
     build: {

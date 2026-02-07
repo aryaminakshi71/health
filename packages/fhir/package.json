@@ -1,0 +1,9 @@
+{
+  "name": "@healthcare-saas/fhir",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "dependencies": {
+    "@healthcare-saas/storage": "workspace:*"
+  }
+}

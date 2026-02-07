@@ -17,7 +17,7 @@ import { patientsRouter } from "./patients";
 import { appointmentsRouter } from "./appointments";
 import { ehrRouter } from "./ehr";
 import { prescriptionsRouter } from "./prescriptions";
-import { billingRouter as billingHealthcareRouter } from "./billing-healthcare";
+import { billingHealthcareRouter } from "./billing-healthcare";
 import { labRouter } from "./lab";
 import { pharmacyRouter } from "./pharmacy";
 import { complianceRouter } from "./compliance";

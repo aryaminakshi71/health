@@ -109,11 +109,33 @@ export const verificationTokens = pgTable('verification_tokens', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
+// MFA secrets table
+export const mfaSecrets = pgTable('mfa_secrets', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  secret: text('secret').notNull(),
+  backupCodes: text('backup_codes').notNull(),
+  enabled: boolean('enabled').notNull().default(false),
+  verifiedAt: timestamp('verified_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   memberships: many(members),
   accounts: many(accounts),
   sessions: many(sessions),
+  mfaSecrets: many(mfaSecrets),
+}))
+
+export const mfaSecretsRelations = relations(mfaSecrets, ({ one }) => ({
+  user: one(users, {
+    fields: [mfaSecrets.userId],
+    references: [users.id],
+  }),
 }))
 
 export const organizationsRelations = relations(organizations, ({ many }) => ({

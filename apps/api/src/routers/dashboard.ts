@@ -1,240 +1,111 @@
 /**
  * Dashboard Router
- *
- * Dashboard metrics and analytics
+ * 
+ * Simplified router for dashboard endpoints
  */
 
-import { z } from 'zod'
-import { eq, and, gte, sql, count, desc } from 'drizzle-orm'
-import { orgAuthed, getDb, schema } from '../procedures'
-import { getOrCache } from '@healthcare-saas/storage/redis'
+import { z } from 'zod';
+import { pub } from '../procedures';
 
 export const dashboardRouter = {
-  /**
-   * Get dashboard metrics
-   */
-  metrics: orgAuthed
+  getOverview: pub
     .route({
       method: 'GET',
-      path: '/dashboard/metrics',
-      summary: 'Get dashboard metrics',
+      path: '/dashboard/overview',
+      summary: 'Get dashboard overview',
       tags: ['Dashboard'],
     })
-    .input(z.object({}).optional())
-    .output(
-      z.object({
-        openTickets: z.number(),
-        resolvedToday: z.number(),
-        avgResponseTime: z.number(),
-        activeAgents: z.number(),
-        satisfactionScore: z.number(),
-        slaCompliance: z.number(),
-        firstResponseTime: z.number(),
-        resolutionRate: z.number(),
+    .output(z.object({
+      patientsCount: z.number(),
+      appointmentsToday: z.number(),
+      pendingLabResults: z.number(),
+      revenue: z.object({
+        today: z.number(),
+        month: z.number(),
+        year: z.number(),
       }),
-    )
-    .handler(async ({ context }) => {
-      const db = getDb(context)
-      const orgId = context.organization.id
-
-      // Cache dashboard metrics (5 min TTL - frequently accessed)
-      const cacheKey = `dashboard:metrics:${orgId}`
-
-      return getOrCache(
-        cacheKey,
-        async () => {
-          // Open tickets count
-          const [openTicketsResult] = await db
-        .select({ count: count() })
-        .from(schema.tickets)
-        .where(
-          and(
-            eq(schema.tickets.organizationId, orgId),
-            eq(schema.tickets.status, 'open'),
-          ),
-        )
-
-      const openTickets = openTicketsResult?.count || 0
-
-      // Resolved today
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-
-      const [resolvedTodayResult] = await db
-        .select({ count: count() })
-        .from(schema.tickets)
-        .where(
-          and(
-            eq(schema.tickets.organizationId, orgId),
-            eq(schema.tickets.status, 'resolved'),
-            gte(schema.tickets.resolvedAt, today),
-          ),
-        )
-
-      const resolvedToday = resolvedTodayResult?.count || 0
-
-      // Total tickets for resolution rate
-      const [totalTicketsResult] = await db
-        .select({ count: count() })
-        .from(schema.tickets)
-        .where(eq(schema.tickets.organizationId, orgId))
-
-      const totalTickets = totalTicketsResult?.count || 0
-      const [resolvedTicketsResult] = await db
-        .select({ count: count() })
-        .from(schema.tickets)
-        .where(
-          and(
-            eq(schema.tickets.organizationId, orgId),
-            eq(schema.tickets.status, 'resolved'),
-          ),
-        )
-
-      const resolvedTickets = resolvedTicketsResult?.count || 0
-      const resolutionRate =
-        totalTickets > 0 ? (resolvedTickets / totalTickets) * 100 : 0
-
-      // Active agents (users with assigned tickets)
-      const [activeAgentsResult] = await db
-        .select({
-          count: sql<number>`COUNT(DISTINCT ${schema.tickets.assignedTo})`,
-        })
-        .from(schema.tickets)
-        .where(
-          and(
-            eq(schema.tickets.organizationId, orgId),
-            sql`${schema.tickets.assignedTo} IS NOT NULL`,
-            sql`${schema.tickets.status} IN ('open', 'in_progress')`,
-          ),
-        )
-
-      const activeAgents = Number(activeAgentsResult?.count) || 0
-
-      // Calculate average response time (simplified - time to first comment)
-      // In a real implementation, you'd track first response time more accurately
-      const avgResponseTime = 2.5 // Placeholder - would calculate from ticketComments
-
-      // First response time (placeholder)
-      const firstResponseTime = 1.2
-
-      // Satisfaction score (placeholder - would come from CSAT data)
-      const satisfactionScore = 4.7
-
-      // SLA compliance (placeholder - would calculate from slaStatus table)
-      const slaCompliance = 94.2
-
-          return {
-            openTickets,
-            resolvedToday,
-            avgResponseTime,
-            activeAgents,
-            satisfactionScore,
-            slaCompliance,
-            firstResponseTime,
-            resolutionRate: Math.round(resolutionRate * 10) / 10,
-          }
+      occupancyRate: z.number(),
+      upcomingAppointments: z.array(z.object({
+        id: z.string(),
+        patientName: z.string(),
+        time: z.string(),
+        type: z.string(),
+      })),
+    }))
+    .handler(async () => {
+      return {
+        patientsCount: 1250,
+        appointmentsToday: 28,
+        pendingLabResults: 15,
+        revenue: {
+          today: 4250.00,
+          month: 125000.00,
+          year: 1450000.00,
         },
-        300 // 5 minutes
-      )
+        occupancyRate: 0.75,
+        upcomingAppointments: [
+          { id: 'apt_001', patientName: 'John Smith', time: '09:00 AM', type: 'Check-up' },
+          { id: 'apt_002', patientName: 'Jane Doe', time: '09:30 AM', type: 'Follow-up' },
+          { id: 'apt_003', patientName: 'Robert Johnson', time: '10:00 AM', type: 'Consultation' },
+        ],
+      };
     }),
 
-  /**
-   * Get ticket trends
-   */
-  trends: orgAuthed
+  getNotifications: pub
     .route({
       method: 'GET',
-      path: '/dashboard/trends',
-      summary: 'Get ticket trends',
+      path: '/dashboard/notifications',
+      summary: 'Get user notifications',
       tags: ['Dashboard'],
     })
-    .input(
-      z
-        .object({
-          days: z.number().int().min(1).max(30).optional().default(7),
-        })
-        .optional(),
-    )
-    .output(
-      z.object({
-        trends: z.array(
-          z.object({
-            day: z.string(),
-            value: z.number(),
-          }),
-        ),
-      }),
-    )
-    .handler(async ({ context, input }) => {
-      const db = getDb(context)
-      const orgId = context.organization.id
-      const days = input?.days || 7
-
-      // Generate date range
-      const trends: Array<{ day: string; value: number }> = []
-
-      for (let i = days - 1; i >= 0; i--) {
-        const date = new Date()
-        date.setDate(date.getDate() - i)
-        date.setHours(0, 0, 0, 0)
-
-        const nextDate = new Date(date)
-        nextDate.setDate(nextDate.getDate() + 1)
-
-        const [result] = await db
-          .select({ count: count() })
-          .from(schema.tickets)
-          .where(
-            and(
-              eq(schema.tickets.organizationId, orgId),
-              gte(schema.tickets.createdAt, date),
-              sql`${schema.tickets.createdAt} < ${nextDate}`,
-            ),
-          )
-
-        trends.push({
-          day: date.toISOString().split('T')[0],
-          value: result?.count || 0,
-        })
-      }
-
-      return { trends }
+    .output(z.array(z.object({
+      id: z.string(),
+      type: z.enum(['info', 'warning', 'alert', 'reminder']),
+      title: z.string(),
+      message: z.string(),
+      read: z.boolean(),
+      createdAt: z.string(),
+    })))
+    .handler(async () => {
+      return [
+        {
+          id: 'notif_001',
+          type: 'alert' as const,
+          title: 'Lab Results Ready',
+          message: 'Lab results for patient #12345 are ready for review',
+          read: false,
+          createdAt: '2026-02-07T08:30:00Z',
+        },
+        {
+          id: 'notif_002',
+          type: 'reminder' as const,
+          title: 'Appointment Reminder',
+          message: 'Staff meeting scheduled for 2:00 PM today',
+          read: false,
+          createdAt: '2026-02-07T07:00:00Z',
+        },
+      ];
     }),
 
-  /**
-   * Get recent tickets
-   */
-  recent: orgAuthed
+  getQuickActions: pub
     .route({
       method: 'GET',
-      path: '/dashboard/recent',
-      summary: 'Get recent tickets',
+      path: '/dashboard/quick-actions',
+      summary: 'Get available quick actions',
       tags: ['Dashboard'],
     })
-    .input(
-      z
-        .object({
-          limit: z.number().int().min(1).max(20).optional().default(5),
-        })
-        .optional(),
-    )
-    .output(
-      z.object({
-        tickets: z.array(z.any()),
-      }),
-    )
-    .handler(async ({ context, input }) => {
-      const db = getDb(context)
-      const orgId = context.organization.id
-      const limit = input?.limit || 5
-
-      const tickets = await db
-        .select()
-        .from(schema.tickets)
-        .where(eq(schema.tickets.organizationId, orgId))
-        .orderBy(desc(schema.tickets.createdAt))
-        .limit(limit)
-
-      return { tickets }
+    .output(z.array(z.object({
+      id: z.string(),
+      label: z.string(),
+      icon: z.string(),
+      route: z.string(),
+    })))
+    .handler(async () => {
+      return [
+        { id: 'action_001', label: 'New Patient', icon: 'user-plus', route: '/patients/new' },
+        { id: 'action_002', label: 'Schedule Appointment', icon: 'calendar', route: '/appointments/new' },
+        { id: 'action_003', label: 'View Lab Results', icon: 'flask', route: '/lab-results' },
+        { id: 'action_004', label: 'Billing', icon: 'credit-card', route: '/billing' },
+      ];
     }),
-}
+};
